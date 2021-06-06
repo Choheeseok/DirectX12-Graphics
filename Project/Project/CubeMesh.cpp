@@ -39,9 +39,14 @@ CubeMesh::CubeMesh(
 	m_vVertices[22] = Vertex(XMFLOAT3(+size, +size, +size), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f));
 	m_vVertices[23] = Vertex(XMFLOAT3(+size, -size, +size), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
 
+	//m_vVertices[0] = Vertex(XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f));
+	//m_vVertices[1] = Vertex(XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f));
+	//m_vVertices[2] = Vertex(XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f));
+	//m_vVertices[3] = Vertex(XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f));
+
 	m_pd3dVertexBuffer = d3dUtil::CreateDefaultBuffer(
 		pd3dDevice, pd3dCommandList,
-		m_vVertices.data(), sizeof(Vertex) * m_nVertices,
+		m_vVertices.data(), m_nStride * m_nVertices,
 		m_pd3dVertexUploadBuffer);
 
 	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();

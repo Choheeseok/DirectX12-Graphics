@@ -28,43 +28,26 @@ struct VS_OUTPUT
 	float2 uv : TEXCOORD;
 };
 
-//VS_OUTPUT VS(VS_INPUT input, uint instanceID : SV_InstanceID)
-//{
-//	VS_OUTPUT output;
-//
-//	output.positionW = mul(float4(input.position, 1.0f),
-//		gGameObjectInfos[instanceID].m_mtxWorld).xyz;
-//
-//	output.position = mul(mul(
-//		float4(output.positionW, 1.0f),
-//		gmtxView),
-//		gmtxProjection);
-//
-//	output.uv = input.uv;
-//
-//	return output;
-//}
-//
-//float4 PS(VS_OUTPUT input) : SV_Target
-//{
-//	float4 color = float4(1,0,0,1);
-//
-//	return color;
-//}
-
-float4 VS(uint nVertexID : SV_VertexID) : SV_Position
+VS_OUTPUT VS(VS_INPUT input, uint instanceID : SV_InstanceID)
 {
-	float4 output;
+	VS_OUTPUT output;
 
-if (nVertexID == 0) output = float4(0.0, 0.5, 0.5, 1.0);
-else if (nVertexID == 1) output = float4(0.5, -0.5, 0.5, 1.0);
-else if (nVertexID == 2) output = float4(-0.5, -0.5, 0.5, 1.0);
-return(output);
+	output.positionW = mul(float4(input.position, 1.0f),
+		gGameObjectInfos[instanceID].m_mtxWorld).xyz;
+
+	output.position = mul(mul(
+		float4(output.positionW, 1.0f),
+		gmtxView),
+		gmtxProjection);
+
+	output.uv = input.uv;
+
+	return output;
 }
 
-float4 PS(float4 input : SV_Position) : SV_Target
+float4 PS(VS_OUTPUT input) : SV_Target
 {
-	float4 color = float4(1,0,0,1);
+	float4 color = float4(input.positionW,1);
 
 	return color;
 }

@@ -21,7 +21,7 @@ public:
 		: m_xmf3Position{ xmf3Position },
 		m_xmf3Normal{ xmf3Normal },
 		m_xmf2TexCoord0{ xmf2TexCoord0 }{};
-	virtual ~Vertex() {};
+	~Vertex() {};
 };
 
 class Mesh
