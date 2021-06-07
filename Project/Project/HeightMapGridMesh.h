@@ -39,8 +39,7 @@ public:
 		ID3D12Device* pd3dDevice,
 		ID3D12GraphicsCommandList* pd3dCommandList,
 		int xStart, int zStart, int nWidth, int nLength,
-		XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color,
-		void* pContext);
+		XMFLOAT3 xmf3Scale, void* pContext);
 	virtual ~HeightMapGridMesh();
 
 	XMFLOAT3 GetScale() { return m_xmf3Scale; };

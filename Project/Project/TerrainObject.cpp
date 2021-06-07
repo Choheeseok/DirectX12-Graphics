@@ -7,7 +7,7 @@ TerrainObject::TerrainObject(
 	ID3D12RootSignature* pd3dGraphicsRootSignature,
 	LPCTSTR pFileName,
 	int nWidth, int nLength, int nBlockWidth, int nBlockLength,
-	XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color)
+	XMFLOAT3 xmf3Scale)
 	: GameObject{ 0, 0 },
 	m_nWidth{ nWidth }, m_nLength{ nLength },
 	m_xmf3Scale{ xmf3Scale }
@@ -22,9 +22,6 @@ TerrainObject::TerrainObject(
 	long czBlocks = (m_nLength - 1) / czQuadsPerBlock;
 
 	m_vMeshes.resize(cxBlocks* czBlocks);
-	for (Mesh* mesh : m_vMeshes)
-		mesh = nullptr;
-
 	HeightMapGridMesh* pHeightMapGridMesh = nullptr;
 	for (int z = 0, zStart = 0; z < czBlocks; z++) {
 		for (int x = 0, xStart = 0; x < cxBlocks; x++) {
@@ -33,8 +30,8 @@ TerrainObject::TerrainObject(
 
 			pHeightMapGridMesh = new HeightMapGridMesh(
 				pd3dDevice, pd3dCommandList,
-				xStart, zStart, nBlockWidth, nBlockLength,
-				xmf3Scale, xmf4Color, m_pHeightMapImage);
+				xStart, zStart, nBlockWidth - 1, nBlockLength - 1,
+				xmf3Scale, m_pHeightMapImage);
 
 			SetMesh(x + (z * cxBlocks), pHeightMapGridMesh);
 		}

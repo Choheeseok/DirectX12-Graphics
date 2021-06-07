@@ -109,79 +109,50 @@ HeightMapGridMesh::HeightMapGridMesh(
 	ID3D12Device* pd3dDevice,
 	ID3D12GraphicsCommandList* pd3dCommandList,
 	int xStart, int zStart, int nWidth, int nLength,
-	XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color,
-	void* pContext)
+	XMFLOAT3 xmf3Scale, void* pContext)
 	: m_nWidth{ nWidth }, m_nLength{ nLength },
 	m_xmf3Scale{ xmf3Scale }
 {
-	m_vVertices.resize(m_nWidth* m_nLength);
+	m_nVertices = 16;
+	m_vVertices.resize(m_nVertices);
 	m_nStride = sizeof(Vertex);
 	m_nOffset = 0;
 	m_nSlot = 0;
-	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_16_CONTROL_POINT_PATCHLIST;
 
+	HeightMapImage* pHeightMapImage = (HeightMapImage*)pContext;
+	int cxHeightMap = pHeightMapImage->GetHeightMapWidth();
+	int czHeightMap = pHeightMapImage->GetHeightMapLength();
+
+	float fWidthEachPoint = (float)nWidth / 3.0f;
+	float fLengthEachPoint = (float)nLength / 3.0f;
 	float fHeight = 0.0f;
-	for (int i = 0, z = zStart; z < (zStart + m_nLength); z++) {
-		for (int x = xStart; x < (xStart + m_nWidth); x++, i++) {
-			fHeight = GetHeight(x, z, pContext);
+	for (int i = 0, z = 0; z < 4; z++) {
+		for (int x = 0; x < 4; x++, i++) {
+			fHeight = GetHeight(xStart + x * fWidthEachPoint, zStart + z * fLengthEachPoint, pContext);
 			XMFLOAT3 xmf3Position = XMFLOAT3(
-				(x * m_xmf3Scale.x), fHeight, (z * m_xmf3Scale.z));
-			XMFLOAT3 xmf3Normal = GetNormal(x, z, pContext);
-			XMFLOAT2 xmf2TexCoord0 =
-				XMFLOAT2((float)x / m_nWidth, (float)z / m_nLength);
-			XMFLOAT2 xmf2TexCoord1 = xmf2TexCoord0;
+				((xStart + x * fWidthEachPoint) * m_xmf3Scale.x),
+				fHeight * m_xmf3Scale.y,
+				((zStart + z * fLengthEachPoint) * m_xmf3Scale.z));
+			XMFLOAT2 xmf2TexCoord0 = XMFLOAT2(
+				float(xStart + x * fWidthEachPoint) / m_nWidth,
+				float(zStart + z * fLengthEachPoint) / m_nLength);
+			XMFLOAT3 xmf3Normal =
+				GetNormal(xStart + x * fWidthEachPoint, zStart + z * fLengthEachPoint, pContext);
 
-			m_vVertices[i] = TerrainVertex(
-				xmf3Position, xmf3Normal, xmf2TexCoord0, xmf2TexCoord1);
+			m_vVertices[i] = Vertex(
+				xmf3Position, xmf3Normal, xmf2TexCoord0);
 		}
 	}
 
 	m_pd3dVertexBuffer = d3dUtil::CreateDefaultBuffer(
 		pd3dDevice, pd3dCommandList,
-		m_vVertices.data(), sizeof(Vertex) * m_vVertices.size(),
+		m_vVertices.data(), m_nStride * m_nVertices,
 		m_pd3dVertexUploadBuffer);
 
 	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
 	m_d3dVertexBufferView.StrideInBytes = m_nStride;
-	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_vVertices.size();
-
-	// 한 줄에서 (2*width)개 + 줄이 바뀔 때마다 인덱스에 하나씩 추가
-	m_vIndices.resize(
-		((nWidth * 2)* (nLength - 1)) + ((nLength - 1) - 1));
-
-	for (int i = 0, z = 0; z < nLength - 1; z++) {
-		if ((z % 2) == 0) {
-			// 홀수 번째 줄(z = 0, 2, 4. . .)이므로 인덱스의 나열 순서는 왼쪽에서 오른쪽
-			for (int x = 0; x < nWidth; x++) {
-				// 첫 번째 줄을 제외하고 줄이 바뀔 때마다 첫 번째 인덱스 추가
-				if ((x == 0) && (z > 0))
-					m_vIndices[i++] = (UINT)(x + (z * nWidth));
-				// 아래(x,z) 위(x, z+1)의 순서로 인덱스를 추가
-				m_vIndices[i++] = (UINT)(x + (z * nWidth));
-				m_vIndices[i++] = (UINT)((x + (z * nWidth)) + nWidth);
-			}
-		}
-		else {
-			// 짝수 번째 줄(z = 1, 3, 5 . . .)이므로 인덱스의 나열 순서는 오른쪽에서 왼쪽
-			for (int x = nWidth - 1; x >= 0; x--) {
-				//줄이 바뀔 때마다 첫 번째 인덱스를 추가한다.
-				if (x == (nWidth - 1))
-					m_vIndices[i++] = (UINT)(x + (z * nWidth));
-				//아래(x, z), 위(x, z+1)의 순서로 인덱스를 추가한다.
-				m_vIndices[i++] = (UINT)(x + (z * nWidth));
-				m_vIndices[i++] = (UINT)((x + (z * nWidth)) + nWidth);
-			}
-		}
-	}
-
-	m_pd3dIndexBuffer = d3dUtil::CreateDefaultBuffer(
-		pd3dDevice, pd3dCommandList,
-		m_vIndices.data(), sizeof(UINT) * m_vIndices.size(),
-		m_pd3dIndexUploadBuffer);
-
-	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
-	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_vIndices.size();
+	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
 }
 
 HeightMapGridMesh::~HeightMapGridMesh()

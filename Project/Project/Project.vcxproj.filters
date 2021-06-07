@@ -208,4 +208,9 @@
       <Filter>소스 파일\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Terrain.hlsl">
+      <Filter>소스 파일\HLSLs</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

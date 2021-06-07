@@ -19,7 +19,7 @@ public:
 		ID3D12RootSignature* pd3dGraphicsRootSignature,
 		LPCTSTR pFileName,
 		int nWidth, int nLength, int nBlockWidth, int nBlockLength,
-		XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color);
+		XMFLOAT3 xmf3Scale);
 	virtual ~TerrainObject();
 
 	float GetHeight(float x, float z) const;
