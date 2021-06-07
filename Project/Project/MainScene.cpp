@@ -294,6 +294,16 @@ void MainScene::BuildMeshes()
 
 void MainScene::BuildShaders()
 {
+	m_umShaders["Terrain"] =
+		make_unique<TerrainShader>(
+			m_pd3dDevice,
+			m_pd3dCommandList,
+			m_pd3dGraphicsRootSignature.Get(),
+			m_pd3dDescriptorHeap.Get(),
+			m_nCbvSrvUavDescriptorIncrementSize);
+	m_pTerrain =
+		m_umShaders["Terrain"]->BuildTerrain(m_umMeshes, m_umMaterials);
+
 	m_umShaders["Opaque"] =
 		make_unique<OpaqueShader>(
 			m_pd3dDevice,

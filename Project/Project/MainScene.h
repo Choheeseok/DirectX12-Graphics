@@ -1,9 +1,13 @@
 #pragma once
 
 #include "Scene.h"
+#include "TerrainObject.h"
 
 class MainScene : public Scene
 {
+private:
+	TerrainObject* m_pTerrain;
+
 public:
 	MainScene(
 		ID3D12Device* pd3dDevice,

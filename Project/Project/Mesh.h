@@ -24,6 +24,26 @@ public:
 	~Vertex() {};
 };
 
+class TerrainVertex : public Vertex
+{
+private:
+	XMFLOAT2 m_xmf2TexCoord1;
+public:
+	TerrainVertex() :
+		Vertex{},
+		m_xmf2TexCoord1{}{};
+	TerrainVertex(
+		const XMFLOAT3& xmf3Position,
+		const XMFLOAT3& xmf3Normal,
+		const XMFLOAT2& xmf2TexCoord0,
+		const XMFLOAT2& xmf2TexCoord1)
+		: Vertex{ xmf3Position,
+		xmf3Normal,
+		xmf2TexCoord0 },
+		m_xmf2TexCoord1{ xmf2TexCoord1 }{};
+	~TerrainVertex() {};
+};
+
 class Mesh
 {
 protected:

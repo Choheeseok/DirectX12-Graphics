@@ -154,6 +154,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDSTextureLoader12.h" />
     <ClInclude Include="GameObjects.h" />
+    <ClInclude Include="HeightMapGridMesh.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="RotatingObject.h" />
@@ -170,6 +171,8 @@
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="SkyBoxShader.h" />
     <ClInclude Include="SphereMesh.h" />
+    <ClInclude Include="TerrainObject.h" />
+    <ClInclude Include="TerrainShader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Meshes.h" />
@@ -193,6 +196,7 @@
     <ClCompile Include="d3dApp.cpp" />
     <ClCompile Include="d3dUtil.cpp" />
     <ClCompile Include="DDSTextureLoader12.cpp" />
+    <ClCompile Include="HeightMapGridMesh.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="RotatingObject.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -211,6 +215,8 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SkyBoxShader.cpp" />
     <ClCompile Include="SphereMesh.cpp" />
+    <ClCompile Include="TerrainObject.cpp" />
+    <ClCompile Include="TerrainShader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Shaders.hlsl">

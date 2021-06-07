@@ -124,6 +124,15 @@
     <ClInclude Include="SkyBox.hlsl">
       <Filter>소스 파일\HLSLs</Filter>
     </ClInclude>
+    <ClInclude Include="HeightMapGridMesh.h">
+      <Filter>소스 파일\Meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainObject.h">
+      <Filter>소스 파일\GameObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainShader.h">
+      <Filter>소스 파일\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="d3dApp.cpp">
@@ -187,6 +196,15 @@
       <Filter>소스 파일\Materials</Filter>
     </ClCompile>
     <ClCompile Include="SkyBoxShader.cpp">
+      <Filter>소스 파일\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="HeightMapGridMesh.cpp">
+      <Filter>소스 파일\Meshes</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainObject.cpp">
+      <Filter>소스 파일\GameObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainShader.cpp">
       <Filter>소스 파일\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
