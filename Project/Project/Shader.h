@@ -5,6 +5,7 @@
 struct INSTANCE_GAMEOBJECT_INFO
 {
 	XMFLOAT4X4 m_xmf4x4World;
+	UINT m_nMaterialIndex;
 };
 
 class Shader
@@ -68,7 +69,8 @@ public:
 
 	virtual void BuildObjects();
 	virtual void BuildObjects(
-		unordered_map<string, unique_ptr<Mesh>>& umMeshes) {};
+		unordered_map<string, unique_ptr<Mesh>>& umMeshes,
+		unordered_map<string, unique_ptr<Material>>& umMaterials) {};
 	virtual void AnimateObjects(const float& fTimeElapsed);
 	virtual void Render();
 };

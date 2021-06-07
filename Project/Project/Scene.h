@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Meshes.h"
+#include "Materials.h"
 #include "Camera.h"
 #include "Shaders.h"
+#include "Light.h"
 #include "Timer.h"
 
 class Scene
@@ -20,9 +22,20 @@ protected:
 
 	GameTimer& m_gameTimer;
 
+	ComPtr<ID3D12DescriptorHeap> m_pd3dDescriptorHeap;
+
+	ComPtr<ID3D12Resource> m_pInstanceMaterials;
+	INSTANCE_MATERIAL_INFO* m_pInstanceMappedMaterials;
+
+	ComPtr<ID3D12Resource> m_pLights;
+	CB_LIGHT_INFO* m_pMappedLights;
+
 	unordered_map<string, unique_ptr<Camera>> m_umCameras;
 	unordered_map<string, unique_ptr<Shader>> m_umShaders;
 	unordered_map<string, unique_ptr<Mesh>> m_umMeshes;
+	unordered_map<string, unique_ptr<Texture>> m_umTextures;
+	unordered_map<string, unique_ptr<Material>> m_umMaterials;
+	unordered_map<string, unique_ptr<Light>> m_umLights;
 
 	POINT m_pntLastMousePos;
 
@@ -46,9 +59,9 @@ public:
 	virtual void OnMouseUp(WPARAM wBtnState, int x, int y) {};
 	virtual void OnMouseMove(WPARAM wBtnState, int x, int y) {};
 
-	void CreateShaderVariables();
-	void UpdateShaderVariables();
-	void SetShaderVariables();
+	virtual void CreateShaderVariables() {};
+	virtual void UpdateShaderVariables() {};
+	virtual void SetShaderVariables() {};
 
 	virtual void BuildObjects() {};
 	virtual void Update() {};

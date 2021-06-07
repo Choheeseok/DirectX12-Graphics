@@ -24,6 +24,7 @@ public:
 		ID3DBlob** pd3dShaderBlob) override;
 
 	void BuildObjects(
-		unordered_map<string, unique_ptr<Mesh>>& umMeshes)override;
+		unordered_map<string, unique_ptr<Mesh>>& umMeshes,
+		unordered_map<string, unique_ptr<Material>>& umMaterials)override;
 	void Render() override;
 };

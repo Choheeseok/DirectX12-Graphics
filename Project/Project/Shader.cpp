@@ -201,6 +201,8 @@ void Shader::UpdateShaderVariables()
 	for (int i = 0; i < m_vGameObjects.size(); i++) {
 		XMStoreFloat4x4(&m_pInstanceMappedGameObjects[i].m_xmf4x4World,
 			XMMatrixTranspose(XMLoadFloat4x4(&m_vGameObjects[i]->GetWorldMatrix())));
+		XMStoreInt(&m_pInstanceMappedGameObjects[i].m_nMaterialIndex,
+			XMLoadInt(&m_vGameObjects[i]->GetMaterial(0)->m_nIndex));
 	}
 }
 

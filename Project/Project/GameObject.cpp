@@ -1,19 +1,26 @@
 #include "pch.h"
 #include "GameObject.h"
 
-GameObject::GameObject(int nMeshes)
+GameObject::GameObject(int nMeshes, int nMaterials)
 	: m_xmf3Position{ XMFLOAT3(0,0,0) },
 	m_xmf3Scale{ XMFLOAT3(1,1,1) },
 	m_xmf3Rotation{ XMFLOAT3(0,0,0) },
 	m_xmf4x4World{ Matrix4x4::Identity() }
 {
 	m_vMeshes.resize(nMeshes);
+	m_vMaterials.resize(nMaterials);
 };
 
 void GameObject::SetMesh(int nIndex, Mesh* pMesh)
 {
 	if (nIndex < m_vMeshes.size())
 		m_vMeshes[nIndex] = pMesh;
+}
+
+void GameObject::SetMaterial(int nIndex, Material* pMaterial)
+{
+	if (nIndex < m_vMaterials.size())
+		m_vMaterials[nIndex] = pMaterial;
 }
 
 void GameObject::Render(
@@ -23,6 +30,10 @@ void GameObject::Render(
 	UINT nInstances)
 {
 	for (int i = 0; i < m_vMeshes.size(); i++) {
+		if (i < m_vMaterials.size() && m_vMaterials[i]) {
+			m_vMaterials[i]->SetShaderVariables(
+				pd3dCommandList, pd3dDescriptorHeap, nCbvSrvUavDescriptorIncrementSize);
+		}
 		m_vMeshes[i]->Render(pd3dCommandList, nInstances);
 	}
 }

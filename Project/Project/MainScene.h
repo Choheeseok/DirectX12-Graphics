@@ -28,13 +28,21 @@ public:
 
 	void OnKeyboardInput();
 
+	void CreateShaderVariables() override;
+	void UpdateShaderVariables() override;
+	void SetShaderVariables() override;
+
 	void BuildObjects() override;
 	void Update() override;
 	void Render() override;
 
 	void CreateGraphicsRootSignature() override;
 public:
+	void BuildDescriptorHeaps();
 	void BuildCameras();
 	void BuildMeshes();
 	void BuildShaders();
+	void BuildTextures();
+	void BuildMaterials();
+	void BuildLights();
 };

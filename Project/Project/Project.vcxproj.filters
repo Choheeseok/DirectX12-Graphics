@@ -29,6 +29,12 @@
     <Filter Include="소스 파일\Players">
       <UniqueIdentifier>{1eb5e6c7-0b5f-46a1-9b6e-7c5cd2f59c77}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Materials">
+      <UniqueIdentifier>{a8a4fb6c-b7b2-49fb-8919-dbda9b990425}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Lights">
+      <UniqueIdentifier>{60955200-d4f1-4509-8663-ca96e75b671b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dApp.h">
@@ -97,6 +103,21 @@
     <ClInclude Include="Scenes.h">
       <Filter>소스 파일\Scenes</Filter>
     </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>소스 파일\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>소스 파일\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="Materials.h">
+      <Filter>소스 파일\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>소스 파일\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.hlsl">
+      <Filter>소스 파일\HLSLs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="d3dApp.cpp">
@@ -152,6 +173,12 @@
     </ClCompile>
     <ClCompile Include="RotatingObject.cpp">
       <Filter>소스 파일\GameObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>소스 파일\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>소스 파일\Materials</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

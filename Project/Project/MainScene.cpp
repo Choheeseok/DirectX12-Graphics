@@ -41,13 +41,75 @@ void MainScene::OnKeyboardInput()
 		m_umCameras["Main"]->MoveStrafe(20.0f * deltaTime);
 }
 
+void MainScene::CreateShaderVariables()
+{
+	UINT ncbElementBytes =
+		d3dUtil::CalcConstantBufferByteSize(
+			sizeof(INSTANCE_MATERIAL_INFO) * m_umMaterials.size());
+	m_pInstanceMaterials = CreateBufferResource(m_pd3dDevice, m_pd3dCommandList,
+		nullptr, ncbElementBytes,
+		D3D12_HEAP_TYPE_UPLOAD,
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr);
+	m_pInstanceMaterials->Map(0, nullptr, (void**)&m_pInstanceMappedMaterials);
+
+	ncbElementBytes =
+		d3dUtil::CalcConstantBufferByteSize(
+			sizeof(CB_LIGHT_INFO));
+	m_pLights = CreateBufferResource(m_pd3dDevice, m_pd3dCommandList,
+		nullptr, ncbElementBytes,
+		D3D12_HEAP_TYPE_UPLOAD,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr);
+	m_pLights->Map(0, nullptr, (void**)&m_pMappedLights);
+}
+
+void MainScene::UpdateShaderVariables()
+{
+	for (const auto& camera : m_umCameras)
+		camera.second->UpdateShaderVariables(m_pd3dCommandList);
+
+	for (const auto& shader : m_umShaders)
+		shader.second->UpdateShaderVariables();
+
+	int i = 0;
+	for (const auto& material : m_umMaterials) {
+		XMStoreFloat4(&m_pInstanceMappedMaterials[i].m_xmf4Ambient,
+			XMLoadFloat4(&material.second->m_xmf4Ambient));
+		XMStoreFloat4(&m_pInstanceMappedMaterials[i].m_xmf4Diffuse,
+			XMLoadFloat4(&material.second->m_xmf4Diffuse));
+		XMStoreFloat4(&m_pInstanceMappedMaterials[i].m_xmf4Specular,
+			XMLoadFloat4(&material.second->m_xmf4Specular));
+		XMStoreFloat4(&m_pInstanceMappedMaterials[i].m_xmf4Emissive,
+			XMLoadFloat4(&material.second->m_xmf4Emissive));
+		i++;
+	}
+
+	i = 0;
+	for (const auto& light : m_umLights) {
+		memcpy(&m_pMappedLights->m_pLights[i++], light.second.get(), sizeof(Light));
+	}
+	m_pMappedLights->m_nLights = m_umLights.size();
+}
+
+void MainScene::SetShaderVariables()
+{
+	m_pd3dCommandList->SetGraphicsRootShaderResourceView(
+		2, m_pInstanceMaterials->GetGPUVirtualAddress());
+
+	m_pd3dCommandList->SetGraphicsRootConstantBufferView(
+		4, m_pLights->GetGPUVirtualAddress());
+}
+
 void MainScene::BuildObjects()
 {
 	CreateGraphicsRootSignature();
 
 	BuildCameras();
 	BuildMeshes();
+	BuildTextures();
+	BuildDescriptorHeaps();
+	BuildMaterials();
 	BuildShaders();
+	BuildLights();
 
 	CreateShaderVariables();
 
@@ -80,6 +142,10 @@ void MainScene::Render()
 	m_umCameras["Main"]->UpdateShaderVariables(m_pd3dCommandList);
 	m_umCameras["Main"]->SetShaderVariables(m_pd3dCommandList);
 
+	ID3D12DescriptorHeap* pd3dDescriptorheaps[] = { m_pd3dDescriptorHeap.Get() };
+	m_pd3dCommandList->SetDescriptorHeaps(
+		_countof(pd3dDescriptorheaps), pd3dDescriptorheaps);
+
 	UpdateShaderVariables();
 	SetShaderVariables();
 
@@ -93,9 +159,12 @@ void MainScene::CreateGraphicsRootSignature()
 	CD3DX12_DESCRIPTOR_RANGE d3dDescriptorTable[1];
 	d3dDescriptorTable[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);
 
-	CD3DX12_ROOT_PARAMETER pd3dRootParameters[2];
+	CD3DX12_ROOT_PARAMETER pd3dRootParameters[5];
 	pd3dRootParameters[0].InitAsConstantBufferView(0); // b0 Camera
 	pd3dRootParameters[1].InitAsShaderResourceView(0); // t0 Object
+	pd3dRootParameters[2].InitAsShaderResourceView(1); // t1 Material
+	pd3dRootParameters[3].InitAsDescriptorTable(1, &d3dDescriptorTable[0]); // t2 DiffuseMap
+	pd3dRootParameters[4].InitAsConstantBufferView(1); // b1 Light
 
 	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -131,6 +200,79 @@ void MainScene::CreateGraphicsRootSignature()
 		IID_PPV_ARGS(m_pd3dGraphicsRootSignature.GetAddressOf())));
 }
 
+void MainScene::BuildDescriptorHeaps()
+{
+	// SRV 힙을 만든다
+	D3D12_DESCRIPTOR_HEAP_DESC d3dDescriptorHeapDesc{};
+	d3dDescriptorHeapDesc.NumDescriptors = m_umTextures.size();
+	d3dDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	d3dDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	ThrowIfFailed(m_pd3dDevice->CreateDescriptorHeap(
+		&d3dDescriptorHeapDesc, IID_PPV_ARGS(&m_pd3dDescriptorHeap)));
+
+	// 디스크립터들을 채운다
+	CD3DX12_CPU_DESCRIPTOR_HANDLE d3dDescriptorHandle{
+		m_pd3dDescriptorHeap->GetCPUDescriptorHandleForHeapStart() };
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC d3dSrvDesc{};
+	d3dSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+	int i = 0;
+	for (auto& texture : m_umTextures) {
+		for (int j = 0; j < texture.second->m_vTextures.size(); j++) {
+			D3D12_RESOURCE_DESC d3dResourceDesc =
+				texture.second->m_vTextures[j]->GetDesc();
+			d3dSrvDesc.Format = d3dResourceDesc.Format;
+			switch (texture.second->m_nResourceType) {
+			case Texture::RESOURCE_TEXTURE2D:
+				// (d3dResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+				// (d3dResourceDesc.DepthOrArraySize == 1)
+			case Texture::RESOURCE_TEXTURE2D_ARRAY:
+				// []
+				d3dSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+				d3dSrvDesc.Texture2D.MipLevels = -1;
+				d3dSrvDesc.Texture2D.MostDetailedMip = 0;
+				d3dSrvDesc.Texture2D.PlaneSlice = 0;
+				d3dSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+				break;
+			case Texture::RESOURCE_TEXTURE2DARRAY:
+				// (d3dResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+				// (d3dResourceDesc.DepthOrArraySize != 1)
+				d3dSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+				d3dSrvDesc.Texture2DArray.MipLevels = -1;
+				d3dSrvDesc.Texture2DArray.MostDetailedMip = 0;
+				d3dSrvDesc.Texture2DArray.PlaneSlice = 0;
+				d3dSrvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+				d3dSrvDesc.Texture2DArray.FirstArraySlice = 0;
+				d3dSrvDesc.Texture2DArray.ArraySize = d3dResourceDesc.DepthOrArraySize;
+				break;
+			case Texture::RESOURCE_TEXTURE_CUBE:
+				// (d3dResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+				// (d3dResourceDesc.DepthOrArraySize == 6)
+				d3dSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+				d3dSrvDesc.TextureCube.MipLevels = 1;
+				d3dSrvDesc.TextureCube.MostDetailedMip = 0;
+				d3dSrvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+				break;
+			case Texture::RESOURCE_BUFFER:
+				// (d3dResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
+				d3dSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+				d3dSrvDesc.Buffer.FirstElement = 0;
+				d3dSrvDesc.Buffer.NumElements = 0;
+				d3dSrvDesc.Buffer.StructureByteStride = 0;
+				d3dSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+				break;
+			}
+
+			m_pd3dDevice->CreateShaderResourceView(
+				texture.second->m_vTextures[j].Get(), &d3dSrvDesc, d3dDescriptorHandle);
+
+			texture.second->m_nSrvHeapIndex = i++;
+			d3dDescriptorHandle.Offset(1, m_nCbvSrvUavDescriptorIncrementSize);
+		}
+	}
+}
+
 void MainScene::BuildCameras()
 {
 	m_umCameras["Main"] =
@@ -155,7 +297,79 @@ void MainScene::BuildShaders()
 			m_pd3dDevice,
 			m_pd3dCommandList,
 			m_pd3dGraphicsRootSignature.Get(),
-			nullptr,
+			m_pd3dDescriptorHeap.Get(),
 			m_nCbvSrvUavDescriptorIncrementSize);
-	m_umShaders["Opaque"]->BuildObjects(m_umMeshes);
+	m_umShaders["Opaque"]->BuildObjects(m_umMeshes, m_umMaterials);
+}
+
+void MainScene::BuildTextures()
+{
+	// Texture( nTextures, nRootParameterIndex )
+	m_umTextures["WoodCrate1"] = make_unique<Texture>(1, 3);
+	m_umTextures["WoodCrate1"]->LoadTextureFromFile(
+		m_pd3dDevice, m_pd3dCommandList, const_cast<wchar_t*>(L"Textures/WoodCrate01.dds"), Texture::RESOURCE_TEXTURE2D, 0);
+
+	m_umTextures["WoodCrate2"] = make_unique<Texture>(1, 3);
+	m_umTextures["WoodCrate2"]->LoadTextureFromFile(
+		m_pd3dDevice, m_pd3dCommandList, const_cast<wchar_t*>(L"Textures/WoodCrate02.dds"), Texture::RESOURCE_TEXTURE2D, 0);
+
+	m_umTextures["Base_Texture"] = make_unique<Texture>(1, 3);
+	m_umTextures["Base_Texture"]->LoadTextureFromFile(
+		m_pd3dDevice, m_pd3dCommandList, const_cast<wchar_t*>(L"Textures/Base_Texture.dds"), Texture::RESOURCE_TEXTURE2D, 0);
+
+	m_umTextures["Grass"] = make_unique<Texture>(1, 3);
+	m_umTextures["Grass"]->LoadTextureFromFile(
+		m_pd3dDevice, m_pd3dCommandList, const_cast<wchar_t*>(L"Textures/Grass.dds"), Texture::RESOURCE_TEXTURE2D, 0);
+
+	m_umTextures["SkyBox"] = make_unique<Texture>(1, 5);
+	m_umTextures["SkyBox"]->LoadTextureFromFile(
+		m_pd3dDevice, m_pd3dCommandList, const_cast<wchar_t*>(L"Textures/SkyBox.dds"), Texture::RESOURCE_TEXTURE_CUBE, 0);
+
+	int i = 0;
+	for (auto& material : m_umMaterials) {
+		material.second->m_nIndex = i++;
+	}
+}
+
+void MainScene::BuildMaterials()
+{
+	m_umMaterials["WoodCrate1"] = make_unique<Material>();
+	m_umMaterials["WoodCrate1"]->m_pTexture =
+		m_umTextures["WoodCrate1"].get();
+	m_umMaterials["WoodCrate1"]->m_xmf4Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	m_umMaterials["WoodCrate1"]->m_xmf4Diffuse = XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f);
+	m_umMaterials["WoodCrate1"]->m_xmf4Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	m_umMaterials["WoodCrate2"] = make_unique<Material>();
+	m_umMaterials["WoodCrate2"]->m_pTexture =
+		m_umTextures["WoodCrate2"].get();
+
+	m_umMaterials["Base_Texture"] = make_unique<Material>();
+	m_umMaterials["Base_Texture"]->m_pTexture =
+		m_umTextures["Base_Texture"].get();
+	m_umMaterials["Base_Texture"]->m_xmf4Diffuse = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+
+	m_umMaterials["Grass"] = make_unique<Material>();
+	m_umMaterials["Grass"]->m_pTexture =
+		m_umTextures["Grass"].get();
+
+	m_umMaterials["SkyBox"] = make_unique<Material>();
+	m_umMaterials["SkyBox"]->m_pTexture =
+		m_umTextures["SkyBox"].get();
+
+	int i = 0;
+	for (auto& material : m_umMaterials) {
+		material.second->m_nIndex = i++;
+	}
+}
+
+void MainScene::BuildLights()
+{
+	m_umLights["Directional"] = make_unique<Light>();
+	m_umLights["Directional"]->m_bEnable = true;
+	m_umLights["Directional"]->m_nType = Light::DirectionalLight;
+	m_umLights["Directional"]->m_xmf4Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	m_umLights["Directional"]->m_xmf4Diffuse = XMFLOAT4(0.8f, 0.8f, 0.7f, 1.0f);
+	m_umLights["Directional"]->m_xmf4Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 0.0f);
+	m_umLights["Directional"]->m_xmf3Direction = Vector3::Normalize(XMFLOAT3(1.0f, -1.0f, 0.0f));
 }
