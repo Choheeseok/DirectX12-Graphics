@@ -1,0 +1,7 @@
+shader.hlsl에서
+
+mul(float4(normal, 1.0f), worldMtx);
+
+float4(normal.x, normal.y, normal.z, 0.0f)이어야 한다
+마지막 w = 1.0f일 경우 월드상의 position에 따라 normal이 바뀌기 때문에
+Directional Light임에도 불구하고 조명 효과가 다르게 나타난다

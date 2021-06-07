@@ -156,15 +156,17 @@ void MainScene::Render()
 
 void MainScene::CreateGraphicsRootSignature()
 {
-	CD3DX12_DESCRIPTOR_RANGE d3dDescriptorTable[1];
+	CD3DX12_DESCRIPTOR_RANGE d3dDescriptorTable[2];
 	d3dDescriptorTable[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);
+	d3dDescriptorTable[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0);
 
-	CD3DX12_ROOT_PARAMETER pd3dRootParameters[5];
+	CD3DX12_ROOT_PARAMETER pd3dRootParameters[6];
 	pd3dRootParameters[0].InitAsConstantBufferView(0); // b0 Camera
 	pd3dRootParameters[1].InitAsShaderResourceView(0); // t0 Object
 	pd3dRootParameters[2].InitAsShaderResourceView(1); // t1 Material
 	pd3dRootParameters[3].InitAsDescriptorTable(1, &d3dDescriptorTable[0]); // t2 DiffuseMap
 	pd3dRootParameters[4].InitAsConstantBufferView(1); // b1 Light
+	pd3dRootParameters[5].InitAsDescriptorTable(1, &d3dDescriptorTable[1]); // t3 CubeMap
 
 	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -300,6 +302,16 @@ void MainScene::BuildShaders()
 			m_pd3dDescriptorHeap.Get(),
 			m_nCbvSrvUavDescriptorIncrementSize);
 	m_umShaders["Opaque"]->BuildObjects(m_umMeshes, m_umMaterials);
+
+	m_umShaders["SkyBox"] =
+		make_unique<SkyBoxShader>(
+			m_pd3dDevice,
+			m_pd3dCommandList,
+			m_pd3dGraphicsRootSignature.Get(),
+			m_pd3dDescriptorHeap.Get(),
+			m_nCbvSrvUavDescriptorIncrementSize);
+	m_umShaders["SkyBox"]->BuildObjects(
+		m_umMeshes, m_umMaterials);
 }
 
 void MainScene::BuildTextures()
