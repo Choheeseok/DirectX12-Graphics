@@ -290,6 +290,9 @@ void MainScene::BuildMeshes()
 
 	m_umMeshes["Sphere"] =
 		make_unique<SphereMesh>(m_pd3dDevice, m_pd3dCommandList);
+
+	m_umMeshes["Grass"] =
+		make_unique<BillboardMesh>(m_pd3dDevice, m_pd3dCommandList);
 }
 
 void MainScene::BuildShaders()
@@ -311,7 +314,22 @@ void MainScene::BuildShaders()
 			m_pd3dGraphicsRootSignature.Get(),
 			m_pd3dDescriptorHeap.Get(),
 			m_nCbvSrvUavDescriptorIncrementSize);
-	m_umShaders["Opaque"]->BuildObjects(m_umMeshes, m_umMaterials);
+	m_umShaders["Opaque"]->BuildObjects();
+
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 10; j++) {
+			GameObject* obj = new GameObject(1, 1);
+			obj->SetMesh(0, m_umMeshes["Sphere"].get());
+			obj->SetMaterial(0, m_umMaterials["WoodCrate1"].get());
+
+			obj->SetPosition(Vector3::Add(XMFLOAT3(
+				17 * i, m_pTerrain->GetHeight(17 * i, 17 * j), 17 * j),
+				m_pTerrain->GetPosition()));
+
+			m_umShaders["Opaque"]->AddObject(obj);
+		}
+	}
+	m_umShaders["Opaque"]->CreateShaderVariables();
 
 	m_umShaders["SkyBox"] =
 		make_unique<SkyBoxShader>(
@@ -320,8 +338,38 @@ void MainScene::BuildShaders()
 			m_pd3dGraphicsRootSignature.Get(),
 			m_pd3dDescriptorHeap.Get(),
 			m_nCbvSrvUavDescriptorIncrementSize);
-	m_umShaders["SkyBox"]->BuildObjects(
-		m_umMeshes, m_umMaterials);
+	m_umShaders["SkyBox"]->BuildObjects();
+	GameObject* obj = new GameObject(1, 1);
+	obj->SetMesh(0, m_umMeshes["Cube"].get());
+	obj->SetMaterial(0, m_umMaterials["SkyBox"].get());
+	m_umShaders["SkyBox"]->AddObject(obj);
+	m_umShaders["SkyBox"]->CreateShaderVariables();
+
+	m_umShaders["Billboard"] =
+		make_unique<BillboardShader>(
+			m_pd3dDevice,
+			m_pd3dCommandList,
+			m_pd3dGraphicsRootSignature.Get(),
+			m_pd3dDescriptorHeap.Get(),
+			m_nCbvSrvUavDescriptorIncrementSize);
+	m_umShaders["Billboard"]->BuildObjects();
+	float fXStep = m_pTerrain->GetWidth() / 200;
+	float fZStep = m_pTerrain->GetLength() / 200;
+	for (int i = 0; i < 200; i++) {
+		for (int j = 0; j < 200; j++) {
+			GameObject* obj = new GameObject(1, 1);
+			obj->SetMesh(0, m_umMeshes["Grass"].get());
+			obj->SetMaterial(0, m_umMaterials["Grass"].get());
+
+			obj->SetPosition(Vector3::Add(XMFLOAT3(
+				fXStep * i, m_pTerrain->GetHeight(fXStep * i, fZStep * j), fZStep * j),
+				m_pTerrain->GetPosition()));
+			obj->SetScale(2.0f, 2.0f, 2.0f);
+
+			m_umShaders["Billboard"]->AddObject(obj);
+		}
+	}
+	m_umShaders["Billboard"]->CreateShaderVariables();
 }
 
 void MainScene::BuildTextures()

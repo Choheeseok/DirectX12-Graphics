@@ -22,9 +22,4 @@ public:
 		ID3DBlob** pd3dShaderBlob) override;
 	D3D12_SHADER_BYTECODE CreatePixelShader(
 		ID3DBlob** pd3dShaderBlob) override;
-
-	void BuildObjects(
-		unordered_map<string, unique_ptr<Mesh>>& umMeshes,
-		unordered_map<string, unique_ptr<Material>>& umMaterials)override;
-	void Render() override;
 };

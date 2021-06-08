@@ -24,9 +24,4 @@ public:
 	D3D12_RASTERIZER_DESC CreateRasterizerState() override;
 	D3D12_DEPTH_STENCIL_DESC CreateDepthStencilState() override;
 	D3D12_INPUT_LAYOUT_DESC CreateInputLayout() override;
-
-	void BuildObjects(
-		unordered_map<string, unique_ptr<Mesh>>& umMeshes,
-		unordered_map<string, unique_ptr<Material>>& umMaterials)override;
-	void Render() override;
 };

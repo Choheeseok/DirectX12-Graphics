@@ -140,6 +140,7 @@ D3D12_RASTERIZER_DESC Shader::CreateRasterizerState()
 {
 	D3D12_RASTERIZER_DESC d3dRasterizerDesc{};
 	d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
+	// d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	d3dRasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
 	d3dRasterizerDesc.FrontCounterClockwise = FALSE;
 	d3dRasterizerDesc.DepthBias = 0;
@@ -186,6 +187,9 @@ D3D12_INPUT_LAYOUT_DESC Shader::CreateInputLayout()
 
 void Shader::CreateShaderVariables()
 {
+	if (m_pInstanceGameObjects) {
+		m_pInstanceGameObjects->Release();
+	}
 	UINT ncbElementBytes =
 		d3dUtil::CalcConstantBufferByteSize(
 			sizeof(INSTANCE_GAMEOBJECT_INFO) * m_vGameObjects.size());
@@ -217,6 +221,11 @@ void Shader::BuildObjects()
 	CreatePipelineStates();
 }
 
+void Shader::AddObject(GameObject* pObject)
+{
+	m_vGameObjects.emplace_back(pObject);
+}
+
 void Shader::AnimateObjects(const float& fTimeElapsed)
 {
 	for (GameObject* obj : m_vGameObjects)
@@ -229,4 +238,10 @@ void Shader::Render()
 
 	UpdateShaderVariables();
 	SetShaderVariables();
+
+	m_vGameObjects[0]->Render(
+		m_pd3dCommandList,
+		m_pd3dDescriptorHeap,
+		m_nCbvSrvUavDescriptorIncrementSize,
+		m_vGameObjects.size());
 }

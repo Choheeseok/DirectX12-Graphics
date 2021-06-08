@@ -36,5 +36,4 @@ public:
 	TerrainObject* BuildTerrain(
 		unordered_map<string, unique_ptr<Mesh>>& umMeshes,
 		unordered_map<string, unique_ptr<Material>>& umMaterials) override;
-	void Render() override;
 };

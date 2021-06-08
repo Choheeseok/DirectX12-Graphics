@@ -133,6 +133,15 @@
     <ClInclude Include="TerrainShader.h">
       <Filter>소스 파일\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="BillboardShader.h">
+      <Filter>소스 파일\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Billboard.hlsl">
+      <Filter>소스 파일\HLSLs</Filter>
+    </ClInclude>
+    <ClInclude Include="BillboardMesh.h">
+      <Filter>소스 파일\Meshes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="d3dApp.cpp">
@@ -206,6 +215,12 @@
     </ClCompile>
     <ClCompile Include="TerrainShader.cpp">
       <Filter>소스 파일\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="BillboardShader.cpp">
+      <Filter>소스 파일\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="BillboardMesh.cpp">
+      <Filter>소스 파일\Meshes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

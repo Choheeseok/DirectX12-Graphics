@@ -92,13 +92,3 @@ TerrainObject* TerrainShader::BuildTerrain(
 
 	return m_pTerrain;
 }
-
-void TerrainShader::Render()
-{
-	Shader::Render();
-	m_vGameObjects[0]->Render(
-		m_pd3dCommandList,
-		m_pd3dDescriptorHeap,
-		m_nCbvSrvUavDescriptorIncrementSize,
-		m_vGameObjects.size());
-}

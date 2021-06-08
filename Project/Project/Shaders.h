@@ -3,3 +3,4 @@
 #include "OpaqueShader.h"
 #include "SkyBoxShader.h"
 #include "TerrainShader.h"
+#include "BillboardShader.h"

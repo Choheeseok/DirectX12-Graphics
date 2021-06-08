@@ -74,27 +74,3 @@ D3D12_INPUT_LAYOUT_DESC SkyBoxShader::CreateInputLayout()
 
 	return d3dInputLayoutDesc;
 };
-
-void SkyBoxShader::BuildObjects(
-	unordered_map<string, unique_ptr<Mesh>>& umMeshes,
-	unordered_map<string, unique_ptr<Material>>& umMaterials)
-{
-	Shader::BuildObjects();
-
-	GameObject* obj = new GameObject(1, 1);
-	obj->SetMesh(0, umMeshes["Cube"].get());
-	obj->SetMaterial(0, umMaterials["SkyBox"].get());
-	m_vGameObjects.emplace_back(obj);
-
-	CreateShaderVariables();
-}
-
-void SkyBoxShader::Render()
-{
-	Shader::Render();
-	m_vGameObjects[0]->Render(
-		m_pd3dCommandList,
-		m_pd3dDescriptorHeap,
-		m_nCbvSrvUavDescriptorIncrementSize,
-		m_vGameObjects.size());
-}

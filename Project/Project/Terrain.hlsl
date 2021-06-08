@@ -137,13 +137,26 @@ HSC_OUTPUT ConstantHS(
 	InputPatch<VS_TERRAIN_OUTPUT, 16> input,
 	uint nPatchID : SV_PrimitiveID)
 {
+	float3 vCenter = float3(0.0f, 0.0f, 0.0f);
+	for (int i = 0; i < 16; i++)
+		vCenter += input[i].position;
+	vCenter *= 0.0625f;
+
+	float d = distance(vCenter, gvCameraPosition);
+
+	float d0 = 1.0f;
+	float d1 = 200.0f;
+	float tess = 30.0f * saturate((d1 - d) / (d1 - d0));
+	tess += 2.0f;
+
 	HSC_OUTPUT output;
-	output.fTessEdges[0] = 8.0f;
-	output.fTessEdges[1] = 8.0f;
-	output.fTessEdges[2] = 8.0f;
-	output.fTessEdges[3] = 8.0f;
-	output.fTessInsides[0] = 8.0f;
-	output.fTessInsides[1] = 8.0f;
+	output.fTessEdges[0] = tess;
+	output.fTessEdges[1] = tess;
+	output.fTessEdges[2] = tess;
+	output.fTessEdges[3] = tess;
+	output.fTessInsides[0] = tess;
+	output.fTessInsides[1] = tess;
+
 	return output;
 }
 

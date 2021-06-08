@@ -35,33 +35,3 @@ D3D12_SHADER_BYTECODE OpaqueShader::CreatePixelShader(
 {
 	return CompileShaderFromFile(L"Shaders.hlsl", "PS", "ps_5_1", pd3dShaderBlob);
 };
-
-void OpaqueShader::BuildObjects(
-	unordered_map<string, unique_ptr<Mesh>>& umMeshes,
-	unordered_map<string, unique_ptr<Material>>& umMaterials)
-{
-	Shader::BuildObjects();
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			GameObject* obj = new GameObject(1, 1);
-			obj->SetMesh(0, umMeshes["Sphere"].get());
-			obj->SetMaterial(0, umMaterials["WoodCrate2"].get());
-			obj->SetPosition(10.0f * urd(dre) - 5, 10.0f * urd(dre) - 5, 10.0f * urd(dre) - 5);
-			m_vGameObjects.emplace_back(obj);
-		}
-	}
-
-	CreateShaderVariables();
-}
-
-void OpaqueShader::Render()
-{
-	Shader::Render();
-
-	m_vGameObjects[0]->Render(
-		m_pd3dCommandList,
-		m_pd3dDescriptorHeap,
-		m_nCbvSrvUavDescriptorIncrementSize,
-		m_vGameObjects.size());
-}

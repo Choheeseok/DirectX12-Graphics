@@ -68,15 +68,14 @@ public:
 	void SetShaderVariables();
 
 	virtual void BuildObjects();
-	virtual void BuildObjects(
-		unordered_map<string, unique_ptr<Mesh>>& umMeshes,
-		unordered_map<string, unique_ptr<Material>>& umMaterials) {};
 
 	virtual TerrainObject* BuildTerrain(
 		unordered_map<string, unique_ptr<Mesh>>& umMeshes,
 		unordered_map<string, unique_ptr<Material>>& umMaterials) {
 		return nullptr;
 	};
+
+	void AddObject(GameObject* pObject);
 
 	virtual void AnimateObjects(const float& fTimeElapsed);
 	virtual void Render();
