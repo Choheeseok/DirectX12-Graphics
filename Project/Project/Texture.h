@@ -11,7 +11,6 @@ public:
 		RESOURCE_BUFFER
 	};
 	string m_sName;
-	UINT m_nTextureType;
 	UINT m_nResourceType;
 	UINT m_nTextures;
 	vector<ComPtr<ID3D12Resource>> m_vTextures;
@@ -28,5 +27,14 @@ public:
 		ID3D12GraphicsCommandList* pd3dCommandList,
 		wchar_t* pszFileName,
 		UINT nResrouceType,
+		UINT nIndex);
+
+	void CreateTextureResource(
+		ID3D12Device* pd3dDevice,
+		UINT nWidth,
+		UINT nHeight,
+		DXGI_FORMAT dxgiFormat,
+		D3D12_RESOURCE_FLAGS d3dFlags,
+		D3D12_RESOURCE_STATES d3dResourceState,
 		UINT nIndex);
 };

@@ -106,7 +106,8 @@ void MainScene::BuildObjects()
 	BuildCameras();
 	BuildMeshes();
 	BuildTextures();
-	BuildDescriptorHeaps();
+	BuildDescriptorHeap();
+	BuildDescriptors();
 	BuildMaterials();
 	BuildShaders();
 	BuildLights();
@@ -149,16 +150,17 @@ void MainScene::Render()
 	UpdateShaderVariables();
 	SetShaderVariables();
 
-	for (const auto& shader : m_umShaders) {
-		shader.second->Render();
-	}
+	m_umShaders["Terrain"]->Render();
+	m_umShaders["Billboard"]->Render();
+	m_umShaders["Opaque"]->Render();
+	m_umShaders["SkyBox"]->Render();
 }
 
 void MainScene::CreateGraphicsRootSignature()
 {
 	CD3DX12_DESCRIPTOR_RANGE d3dDescriptorTable[2];
-	d3dDescriptorTable[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);
-	d3dDescriptorTable[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0);
+	d3dDescriptorTable[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0); // DiffuseMap
+	d3dDescriptorTable[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0); // CubeMap
 
 	CD3DX12_ROOT_PARAMETER pd3dRootParameters[6];
 	pd3dRootParameters[0].InitAsConstantBufferView(0); // b0 Camera
@@ -181,7 +183,7 @@ void MainScene::CreateGraphicsRootSignature()
 		D3D12_COMPARISON_FUNC_ALWAYS,
 		D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
 		0.0f, D3D12_FLOAT32_MAX,
-		D3D12_SHADER_VISIBILITY_PIXEL, 0);
+		D3D12_SHADER_VISIBILITY_ALL, 0);
 
 	CD3DX12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
 	d3dRootSignatureDesc.Init(
@@ -202,27 +204,34 @@ void MainScene::CreateGraphicsRootSignature()
 		IID_PPV_ARGS(m_pd3dGraphicsRootSignature.GetAddressOf())));
 }
 
-void MainScene::BuildDescriptorHeaps()
+void MainScene::BuildDescriptorHeap()
 {
-	// SRV 힙을 만든다
+	ComPtr< ID3D12DescriptorHeap> pd3dTextureDescriptorHeap;
 	D3D12_DESCRIPTOR_HEAP_DESC d3dDescriptorHeapDesc{};
-	d3dDescriptorHeapDesc.NumDescriptors = m_umTextures.size();
+	d3dDescriptorHeapDesc.NumDescriptors = m_umTextures.size() + 2; // Terrain position
 	d3dDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	d3dDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(m_pd3dDevice->CreateDescriptorHeap(
-		&d3dDescriptorHeapDesc, IID_PPV_ARGS(&m_pd3dDescriptorHeap)));
+		&d3dDescriptorHeapDesc, IID_PPV_ARGS(&pd3dTextureDescriptorHeap)));
+	m_pd3dDescriptorHeap = pd3dTextureDescriptorHeap;
+}
 
+void MainScene::BuildDescriptors()
+{
 	// 디스크립터들을 채운다
 	CD3DX12_CPU_DESCRIPTOR_HANDLE d3dDescriptorHandle{
 		m_pd3dDescriptorHeap->GetCPUDescriptorHandleForHeapStart() };
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC d3dSrvDesc{};
 	d3dSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC d3dUavDesc{};
+
+	D3D12_RESOURCE_DESC d3dResourceDesc = {};
 
 	int i = 0;
 	for (auto& texture : m_umTextures) {
 		for (int j = 0; j < texture.second->m_vTextures.size(); j++) {
-			D3D12_RESOURCE_DESC d3dResourceDesc =
+			d3dResourceDesc =
 				texture.second->m_vTextures[j]->GetDesc();
 			d3dSrvDesc.Format = d3dResourceDesc.Format;
 			switch (texture.second->m_nResourceType) {
@@ -306,6 +315,7 @@ void MainScene::BuildShaders()
 			m_nCbvSrvUavDescriptorIncrementSize);
 	m_pTerrain =
 		m_umShaders["Terrain"]->BuildTerrain(m_umMeshes, m_umMaterials);
+	m_umShaders["Terrain"]->CreateShaderVariables();
 
 	m_umShaders["Opaque"] =
 		make_unique<OpaqueShader>(
@@ -362,7 +372,9 @@ void MainScene::BuildShaders()
 			obj->SetMaterial(0, m_umMaterials["Grass"].get());
 
 			obj->SetPosition(Vector3::Add(XMFLOAT3(
-				fXStep * i, m_pTerrain->GetHeight(fXStep * i, fZStep * j), fZStep * j),
+				fXStep * i,
+				m_pTerrain->GetHeight(fXStep * i, fZStep * j) + 0.5f,
+				fZStep * j),
 				m_pTerrain->GetPosition()));
 			obj->SetScale(2.0f, 2.0f, 2.0f);
 
@@ -394,11 +406,6 @@ void MainScene::BuildTextures()
 	m_umTextures["SkyBox"] = make_unique<Texture>(1, 5);
 	m_umTextures["SkyBox"]->LoadTextureFromFile(
 		m_pd3dDevice, m_pd3dCommandList, const_cast<wchar_t*>(L"Textures/SkyBox.dds"), Texture::RESOURCE_TEXTURE_CUBE, 0);
-
-	int i = 0;
-	for (auto& material : m_umMaterials) {
-		material.second->m_nIndex = i++;
-	}
 }
 
 void MainScene::BuildMaterials()

@@ -1,7 +1,5 @@
 #include "Shaders.hlsl"
 
-TextureCube gtxtCubeMap : register(t3);
-
 struct VS_SKYBOX_INPUT
 {
 	float3 pos : POSITION;

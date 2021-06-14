@@ -113,32 +113,26 @@ HeightMapGridMesh::HeightMapGridMesh(
 	: m_nWidth{ nWidth }, m_nLength{ nLength },
 	m_xmf3Scale{ xmf3Scale }
 {
-	m_nVertices = 16;
+	m_nVertices = m_nWidth * m_nLength;
 	m_vVertices.resize(m_nVertices);
 	m_nStride = sizeof(Vertex);
 	m_nOffset = 0;
 	m_nSlot = 0;
-	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_16_CONTROL_POINT_PATCHLIST;
+	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 
 	HeightMapImage* pHeightMapImage = (HeightMapImage*)pContext;
 	int cxHeightMap = pHeightMapImage->GetHeightMapWidth();
 	int czHeightMap = pHeightMapImage->GetHeightMapLength();
 
-	float fWidthEachPoint = (float)nWidth / 3.0f;
-	float fLengthEachPoint = (float)nLength / 3.0f;
 	float fHeight = 0.0f;
-	for (int i = 0, z = 0; z < 4; z++) {
-		for (int x = 0; x < 4; x++, i++) {
-			fHeight = GetHeight(xStart + x * fWidthEachPoint, zStart + z * fLengthEachPoint, pContext);
+	for (int i = 0, z = zStart; z < (zStart + m_nLength); z++) {
+		for (int x = xStart; x < (xStart + m_nWidth); x++, i++) {
+			fHeight = GetHeight(x, z, pContext);
 			XMFLOAT3 xmf3Position = XMFLOAT3(
-				((xStart + x * fWidthEachPoint) * m_xmf3Scale.x),
-				fHeight * m_xmf3Scale.y,
-				((zStart + z * fLengthEachPoint) * m_xmf3Scale.z));
-			XMFLOAT2 xmf2TexCoord0 = XMFLOAT2(
-				float(xStart + x * fWidthEachPoint) / m_nWidth,
-				float(zStart + z * fLengthEachPoint) / m_nLength);
-			XMFLOAT3 xmf3Normal =
-				GetNormal(xStart + x * fWidthEachPoint, zStart + z * fLengthEachPoint, pContext);
+				(x * m_xmf3Scale.x), fHeight, (z * m_xmf3Scale.z));
+			XMFLOAT3 xmf3Normal = GetNormal(x, z, pContext);
+			XMFLOAT2 xmf2TexCoord0 =
+				XMFLOAT2((float)x / m_nWidth, (float)z / m_nLength);
 
 			m_vVertices[i] = Vertex(
 				xmf3Position, xmf3Normal, xmf2TexCoord0);
@@ -153,6 +147,37 @@ HeightMapGridMesh::HeightMapGridMesh(
 	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
 	m_d3dVertexBufferView.StrideInBytes = m_nStride;
 	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+	m_nIndices = ((nWidth * 2) * (nLength - 1)) + ((nLength - 1) - 1);
+	m_vIndices.resize(m_nIndices);
+
+	for (int i = 0, z = 0; z < nLength - 1; z++) {
+		if ((z % 2) == 0) {
+			for (int x = 0; x < nWidth; x++) {
+				if ((x == 0) && (z > 0))
+					m_vIndices[i++] = (UINT)(x + (z * nWidth));
+				m_vIndices[i++] = (UINT)(x + (z * nWidth));
+				m_vIndices[i++] = (UINT)((x + (z * nWidth)) + nWidth);
+			}
+		}
+		else {
+			for (int x = nWidth - 1; x >= 0; x--) {
+				if (x == (nWidth - 1))
+					m_vIndices[i++] = (UINT)(x + (z * nWidth));
+				m_vIndices[i++] = (UINT)(x + (z * nWidth));
+				m_vIndices[i++] = (UINT)((x + (z * nWidth)) + nWidth);
+			}
+		}
+	}
+
+	m_pd3dIndexBuffer = d3dUtil::CreateDefaultBuffer(
+		pd3dDevice, pd3dCommandList,
+		m_vIndices.data(), sizeof(UINT) * m_nIndices,
+		m_pd3dIndexUploadBuffer);
+
+	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
 }
 
 HeightMapGridMesh::~HeightMapGridMesh()

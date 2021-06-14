@@ -30,7 +30,7 @@ TerrainObject::TerrainObject(
 
 			pHeightMapGridMesh = new HeightMapGridMesh(
 				pd3dDevice, pd3dCommandList,
-				xStart, zStart, nBlockWidth - 1, nBlockLength - 1,
+				xStart, zStart, nBlockWidth, nBlockLength,
 				xmf3Scale, m_pHeightMapImage);
 
 			SetMesh(x + (z * cxBlocks), pHeightMapGridMesh);

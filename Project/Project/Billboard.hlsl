@@ -28,8 +28,7 @@ VS_BILLBOARD_OUTPUT VS_Billboard(VS_BILLBOARD_INPUT input, uint instanceID : SV_
 {
 	VS_BILLBOARD_OUTPUT output;
 
-	output.pos = mul(float4(input.pos, 1.0f),
-		gGameObjectInfos[instanceID].m_mtxWorld);
+	output.pos = mul(float4(input.pos, 1.0f), gGameObjectInfos[instanceID].m_mtxWorld);
 
 	output.size = input.size;
 

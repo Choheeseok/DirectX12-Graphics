@@ -1,0 +1,3 @@
+A texture that has D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS set in D3D12_RESOURCE_DESC::Flags must be created with a format that either can be used as unordered access, or cast to a format that could be used as unordered access.
+
+error X4532: cannot map expression to vs_5_1 instruction set

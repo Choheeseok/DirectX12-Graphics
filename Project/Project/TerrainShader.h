@@ -26,10 +26,6 @@ public:
 
 	D3D12_SHADER_BYTECODE CreateVertexShader(
 		ID3DBlob** pd3dShaderBlob) override;
-	D3D12_SHADER_BYTECODE CreateHullShader(
-		ID3DBlob** pd3dShaderBlob) override;
-	D3D12_SHADER_BYTECODE CreateDomainShader(
-		ID3DBlob** pd3dShaderBlob) override;
 	D3D12_SHADER_BYTECODE CreatePixelShader(
 		ID3DBlob** pd3dShaderBlob) override;
 

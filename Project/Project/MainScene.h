@@ -3,11 +3,13 @@
 #include "Scene.h"
 #include "TerrainObject.h"
 
+constexpr int TERRAIN_WIDTH = 257;
+constexpr int TERRAIN_LENGTH = 257;
+
 class MainScene : public Scene
 {
 private:
 	TerrainObject* m_pTerrain;
-
 public:
 	MainScene(
 		ID3D12Device* pd3dDevice,
@@ -42,7 +44,8 @@ public:
 
 	void CreateGraphicsRootSignature() override;
 public:
-	void BuildDescriptorHeaps();
+	void BuildDescriptorHeap();
+	void BuildDescriptors();
 	void BuildCameras();
 	void BuildMeshes();
 	void BuildShaders();

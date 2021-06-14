@@ -121,8 +121,8 @@ void GameObject::UpdateTransform()
 {
 	m_xmf4x4World = Matrix4x4::Identity();
 	m_xmf4x4World._11 = m_xmf3Scale.x;
-	m_xmf4x4World._11 = m_xmf3Scale.y;
-	m_xmf4x4World._11 = m_xmf3Scale.z;
+	m_xmf4x4World._22 = m_xmf3Scale.y;
+	m_xmf4x4World._33 = m_xmf3Scale.z;
 
 	XMVECTOR xmvQuaternion =
 		XMQuaternionRotationRollPitchYaw(

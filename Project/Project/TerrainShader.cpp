@@ -7,29 +7,6 @@ D3D12_INPUT_LAYOUT_DESC TerrainShader::CreateInputLayout()
 	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs =
 		new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
 
-	//pd3dInputElementDescs[0] = {
-	//	"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-	//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-	//pd3dInputElementDescs[1] = {
-	//	"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12,
-	//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-	//pd3dInputElementDescs[2] = {
-	//	"TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20,
-	//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-	//pd3dInputElementDescs[3] = {
-	//	"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28,
-	//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-
-	//pd3dInputElementDescs[0] = {
-	//"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-	//D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-	//pd3dInputElementDescs[1] = {
-	//	"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12,
-	//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-	//pd3dInputElementDescs[2] = {
-	//	"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20,
-	//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-
 	pd3dInputElementDescs[0] = {
 		"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
 		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
@@ -53,18 +30,6 @@ D3D12_SHADER_BYTECODE TerrainShader::CreateVertexShader(
 	return CompileShaderFromFile(L"Terrain.hlsl", "VS_Terrain", "vs_5_1", pd3dShaderBlob);
 };
 
-D3D12_SHADER_BYTECODE TerrainShader::CreateHullShader(
-	ID3DBlob** pd3dShaderBlob)
-{
-	return CompileShaderFromFile(L"Terrain.hlsl", "HS_Terrain", "hs_5_1", pd3dShaderBlob);
-};
-
-D3D12_SHADER_BYTECODE TerrainShader::CreateDomainShader(
-	ID3DBlob** pd3dShaderBlob)
-{
-	return CompileShaderFromFile(L"Terrain.hlsl", "DS_Terrain", "ds_5_1", pd3dShaderBlob);
-};
-
 D3D12_SHADER_BYTECODE TerrainShader::CreatePixelShader(
 	ID3DBlob** pd3dShaderBlob)
 {
@@ -75,7 +40,7 @@ TerrainObject* TerrainShader::BuildTerrain(
 	unordered_map<string, unique_ptr<Mesh>>& umMeshes,
 	unordered_map<string, unique_ptr<Material>>& umMaterials)
 {
-	m_d3dPrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+	m_d3dPrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	Shader::BuildObjects();
 
 	XMFLOAT3 xmf3Scale(1.0f, 1.0f, 1.0f);
