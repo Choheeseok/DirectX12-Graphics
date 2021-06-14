@@ -1,7 +1,8 @@
 #define MAX_LIGHTS			16
-#define MAX_MATERIALS		512
 
 #define DIRECTIONAL_LIGHT	1
+#define POINT_LIGHT 2
+#define SPOT_LIGHT 3
 
 struct INSTANCE_GAMEOBJECT_INFO
 {

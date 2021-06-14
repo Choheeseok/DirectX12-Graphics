@@ -68,4 +68,7 @@ public:
 	void MoveStrafe(const float& fDistance);
 
 	void Rotate(const float& x, const float& y, const float& z);
+
+	XMFLOAT3 GetPosition() const { return m_xmf3Position; };
+	XMFLOAT3 GetLook() const { return m_xmf3Look; };
 };

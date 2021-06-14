@@ -5,7 +5,9 @@ class Light
 public:
 	static const UINT MAX_LIGHT = 16;
 	enum TYPE {
-		DirectionalLight = 1
+		Directional = 1,
+		Point,
+		Spot
 	};
 
 	XMFLOAT4				m_xmf4Ambient;

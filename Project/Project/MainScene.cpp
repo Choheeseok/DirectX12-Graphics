@@ -39,6 +39,9 @@ void MainScene::OnKeyboardInput()
 
 	if (GetAsyncKeyState('D') & 0x8000)
 		m_umCameras["Main"]->MoveStrafe(20.0f * deltaTime);
+
+	m_umLights["Camera_Spot"]->m_xmf3Position = m_umCameras["Main"]->GetPosition();
+	m_umLights["Camera_Spot"]->m_xmf3Direction = m_umCameras["Main"]->GetLook();
 }
 
 void MainScene::CreateShaderVariables()
@@ -150,6 +153,7 @@ void MainScene::Render()
 	UpdateShaderVariables();
 	SetShaderVariables();
 
+	m_umShaders["Point"]->Render();
 	m_umShaders["Terrain"]->Render();
 	m_umShaders["Billboard"]->Render();
 	m_umShaders["Opaque"]->Render();
@@ -326,20 +330,50 @@ void MainScene::BuildShaders()
 			m_nCbvSrvUavDescriptorIncrementSize);
 	m_umShaders["Opaque"]->BuildObjects();
 
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
+	for (int i = 0; i < 20; i++) {
+		for (int j = 0; j < 20; j++) {
 			GameObject* obj = new GameObject(1, 1);
 			obj->SetMesh(0, m_umMeshes["Sphere"].get());
 			obj->SetMaterial(0, m_umMaterials["WoodCrate1"].get());
 
+			float fScale = urd(dre) * 3.0f + 1.0f;
+			float fx = urd(dre) * m_pTerrain->GetWidth();
+			float fy = urd(dre) * 50.0f;
+			float fz = urd(dre) * m_pTerrain->GetLength();
 			obj->SetPosition(Vector3::Add(XMFLOAT3(
-				17 * i, m_pTerrain->GetHeight(17 * i, 17 * j), 17 * j),
+				fx, m_pTerrain->GetHeight(fx, fz) + fy, fz),
 				m_pTerrain->GetPosition()));
+			obj->SetScale(XMFLOAT3(fScale, fScale, fScale));
 
 			m_umShaders["Opaque"]->AddObject(obj);
 		}
 	}
 	m_umShaders["Opaque"]->CreateShaderVariables();
+
+	m_umShaders["Point"] =
+		make_unique<OpaqueShader>(
+			m_pd3dDevice,
+			m_pd3dCommandList,
+			m_pd3dGraphicsRootSignature.Get(),
+			m_pd3dDescriptorHeap.Get(),
+			m_nCbvSrvUavDescriptorIncrementSize);
+	m_umShaders["Point"]->BuildObjects();
+
+	GameObject* light = new GameObject(1, 1);
+	light->SetMesh(0, m_umMeshes["Cube"].get());
+	light->SetMaterial(0, m_umMaterials["WoodCrate2"].get());
+	light->SetPosition(Vector3::Add(
+		XMFLOAT3(40.0f, m_pTerrain->GetHeight(40.0f, 40.0f) + 20.0f, 40.0f),
+		m_pTerrain->GetPosition()));
+	m_umShaders["Point"]->AddObject(light);
+	light = new GameObject(1, 1);
+	light->SetMesh(0, m_umMeshes["Cube"].get());
+	light->SetMaterial(0, m_umMaterials["WoodCrate2"].get());
+	light->SetPosition(Vector3::Add(
+		XMFLOAT3(70.0f, m_pTerrain->GetHeight(70.0f, 70.0f) + 50.0f, 70.0f),
+		m_pTerrain->GetPosition()));
+	m_umShaders["Point"]->AddObject(light);
+	m_umShaders["Point"]->CreateShaderVariables();
 
 	m_umShaders["SkyBox"] =
 		make_unique<SkyBoxShader>(
@@ -363,18 +397,17 @@ void MainScene::BuildShaders()
 			m_pd3dDescriptorHeap.Get(),
 			m_nCbvSrvUavDescriptorIncrementSize);
 	m_umShaders["Billboard"]->BuildObjects();
-	float fXStep = m_pTerrain->GetWidth() / 200;
-	float fZStep = m_pTerrain->GetLength() / 200;
-	for (int i = 0; i < 200; i++) {
-		for (int j = 0; j < 200; j++) {
+
+	for (int i = 0; i < 20; i++) {
+		for (int j = 0; j < 20; j++) {
 			GameObject* obj = new GameObject(1, 1);
 			obj->SetMesh(0, m_umMeshes["Grass"].get());
 			obj->SetMaterial(0, m_umMaterials["Grass"].get());
 
+			float fx = urd(dre) * m_pTerrain->GetWidth();
+			float fz = urd(dre) * m_pTerrain->GetLength();
 			obj->SetPosition(Vector3::Add(XMFLOAT3(
-				fXStep * i,
-				m_pTerrain->GetHeight(fXStep * i, fZStep * j) + 0.5f,
-				fZStep * j),
+				fx, m_pTerrain->GetHeight(fx, fz) + 0.5f, fz),
 				m_pTerrain->GetPosition()));
 			obj->SetScale(2.0f, 2.0f, 2.0f);
 
@@ -420,6 +453,9 @@ void MainScene::BuildMaterials()
 	m_umMaterials["WoodCrate2"] = make_unique<Material>();
 	m_umMaterials["WoodCrate2"]->m_pTexture =
 		m_umTextures["WoodCrate2"].get();
+	m_umMaterials["WoodCrate2"]->m_xmf4Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	m_umMaterials["WoodCrate2"]->m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	m_umMaterials["WoodCrate2"]->m_xmf4Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_umMaterials["Base_Texture"] = make_unique<Material>();
 	m_umMaterials["Base_Texture"]->m_pTexture =
@@ -442,11 +478,51 @@ void MainScene::BuildMaterials()
 
 void MainScene::BuildLights()
 {
-	m_umLights["Directional"] = make_unique<Light>();
-	m_umLights["Directional"]->m_bEnable = true;
-	m_umLights["Directional"]->m_nType = Light::DirectionalLight;
-	m_umLights["Directional"]->m_xmf4Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-	m_umLights["Directional"]->m_xmf4Diffuse = XMFLOAT4(0.8f, 0.8f, 0.7f, 1.0f);
-	m_umLights["Directional"]->m_xmf4Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 0.0f);
-	m_umLights["Directional"]->m_xmf3Direction = Vector3::Normalize(XMFLOAT3(1.0f, -1.0f, 0.0f));
+	m_umLights["Main_Directional"] = make_unique<Light>();
+	m_umLights["Main_Directional"]->m_bEnable = true;
+	m_umLights["Main_Directional"]->m_nType = Light::Directional;
+	m_umLights["Main_Directional"]->m_xmf4Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	m_umLights["Main_Directional"]->m_xmf4Diffuse = XMFLOAT4(0.2f, 0.2f, 0.1f, 1.0f);
+	m_umLights["Main_Directional"]->m_xmf4Specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 0.0f);
+	m_umLights["Main_Directional"]->m_xmf3Direction = Vector3::Normalize(XMFLOAT3(1.0f, -1.0f, 0.0f));
+
+	m_umLights["Point1"] = make_unique<Light>();
+	m_umLights["Point1"]->m_bEnable = true;
+	m_umLights["Point1"]->m_nType = Light::Point;
+	m_umLights["Point1"]->m_fRange = 50.0f;
+	m_umLights["Point1"]->m_xmf4Ambient = XMFLOAT4(0.3f, 0.0f, 0.0f, 1.0f);
+	m_umLights["Point1"]->m_xmf4Diffuse = XMFLOAT4(0.9f, 0.0f, 0.0f, 1.0f);
+	m_umLights["Point1"]->m_xmf4Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
+	m_umLights["Point1"]->m_xmf3Position =
+		Vector3::Add(
+			XMFLOAT3(40.0f, m_pTerrain->GetHeight(40.0f, 40.0f) + 20.0f, 40.0f),
+			m_pTerrain->GetPosition());
+	m_umLights["Point1"]->m_xmf3Attenuation = XMFLOAT3(1.0f, 0.001f, 0.0001f);
+
+	m_umLights["Point2"] = make_unique<Light>();
+	m_umLights["Point2"]->m_bEnable = true;
+	m_umLights["Point2"]->m_nType = Light::Point;
+	m_umLights["Point2"]->m_fRange = 50.0f;
+	m_umLights["Point2"]->m_xmf4Ambient = XMFLOAT4(0.0f, 0.3f, 0.0f, 1.0f);
+	m_umLights["Point2"]->m_xmf4Diffuse = XMFLOAT4(0.0f, 0.9f, 0.0f, 1.0f);
+	m_umLights["Point2"]->m_xmf4Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 0.0f);
+	m_umLights["Point2"]->m_xmf3Position =
+		Vector3::Add(
+			XMFLOAT3(70.0f, m_pTerrain->GetHeight(70.0f, 70.0f) + 50.0f, 70.0f),
+			m_pTerrain->GetPosition());
+	m_umLights["Point2"]->m_xmf3Attenuation = XMFLOAT3(1.0f, 0.001f, 0.0001f);
+
+	m_umLights["Camera_Spot"] = make_unique<Light>();
+	m_umLights["Camera_Spot"]->m_bEnable = true;
+	m_umLights["Camera_Spot"]->m_nType = Light::Spot;
+	m_umLights["Camera_Spot"]->m_fRange = 100.0f;
+	m_umLights["Camera_Spot"]->m_xmf4Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	m_umLights["Camera_Spot"]->m_xmf4Diffuse = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	m_umLights["Camera_Spot"]->m_xmf4Specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 0.0f);
+	m_umLights["Camera_Spot"]->m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	m_umLights["Camera_Spot"]->m_xmf3Direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	m_umLights["Camera_Spot"]->m_xmf3Attenuation = XMFLOAT3(1.0f, 0.01f, 0.0001f);
+	m_umLights["Camera_Spot"]->m_fFalloff = 8.0f;
+	m_umLights["Camera_Spot"]->m_fPhi = (float)cos(XMConvertToRadians(40.0f));
+	m_umLights["Camera_Spot"]->m_fTheta = (float)cos(XMConvertToRadians(20.0f));
 }
