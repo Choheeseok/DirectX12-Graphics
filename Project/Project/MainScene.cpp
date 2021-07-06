@@ -333,7 +333,7 @@ void MainScene::BuildShaders()
 	for (int i = 0; i < 20; i++) {
 		for (int j = 0; j < 20; j++) {
 			GameObject* obj = new GameObject(1, 1);
-			obj->SetMesh(0, m_umMeshes["Sphere"].get());
+			obj->SetMesh(0, m_umMeshes["Cube"].get());
 			obj->SetMaterial(0, m_umMaterials["WoodCrate1"].get());
 
 			float fScale = urd(dre) * 3.0f + 1.0f;

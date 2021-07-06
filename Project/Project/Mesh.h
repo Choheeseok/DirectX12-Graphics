@@ -2,46 +2,19 @@
 
 #include "d3dUtil.h"
 
-class Vertex
+class VertexBuffer
 {
 private:
-	XMFLOAT3 m_xmf3Position;
-	XMFLOAT3 m_xmf3Normal;
-	XMFLOAT2 m_xmf2TexCoord0;
-
+	ComPtr<ID3D12Resource> m_pd3dResource;
+	ComPtr<ID3D12Resource> m_pd3dUploader;
+	D3D12_VERTEX_BUFFER_VIEW m_d3dVertexBufferView;
 public:
-	Vertex() :
-		m_xmf3Position{ },
-		m_xmf3Normal{},
-		m_xmf2TexCoord0{}{};
-	Vertex(
-		const XMFLOAT3& xmf3Position,
-		const XMFLOAT3& xmf3Normal,
-		const XMFLOAT2& xmf2TexCoord0)
-		: m_xmf3Position{ xmf3Position },
-		m_xmf3Normal{ xmf3Normal },
-		m_xmf2TexCoord0{ xmf2TexCoord0 }{};
-	~Vertex() {};
-};
+	ID3D12Resource* Get() { return m_pd3dResource.Get(); }
+	ID3D12Resource* GetUploader() { return m_pd3dUploader.Get(); }
+	D3D12_VERTEX_BUFFER_VIEW& GetViewRef() { return m_d3dVertexBufferView; };
 
-class TerrainVertex : public Vertex
-{
-private:
-	XMFLOAT2 m_xmf2TexCoord1;
-public:
-	TerrainVertex() :
-		Vertex{},
-		m_xmf2TexCoord1{}{};
-	TerrainVertex(
-		const XMFLOAT3& xmf3Position,
-		const XMFLOAT3& xmf3Normal,
-		const XMFLOAT2& xmf2TexCoord0,
-		const XMFLOAT2& xmf2TexCoord1)
-		: Vertex{ xmf3Position,
-		xmf3Normal,
-		xmf2TexCoord0 },
-		m_xmf2TexCoord1{ xmf2TexCoord1 }{};
-	~TerrainVertex() {};
+	void Create(
+		ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, UINT nStride, UINT nVertices, const void* pData);
 };
 
 class Mesh
@@ -50,15 +23,16 @@ protected:
 	string m_sName{};
 
 	UINT m_nVertices{ 0 };
-	vector<Vertex> m_vVertices;
-	ComPtr<ID3D12Resource> m_pd3dVertexBuffer;
-	ComPtr<ID3D12Resource> m_pd3dVertexUploadBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_d3dVertexBufferView;
+	vector<XMFLOAT3> m_vxmf3Positions;
+	vector<XMFLOAT3> m_vxmf3Normals;
+	vector<XMFLOAT2> m_vxmf2TexCoords0;
+	vector<XMFLOAT2> m_vxmf2TexCoords1;
+
+	unordered_map<string, unique_ptr<VertexBuffer>> m_umpVertexBuffers;
 
 	D3D12_PRIMITIVE_TOPOLOGY m_d3dPrimitiveTopology;
 
 	UINT m_nSlot{ 0 };
-	UINT m_nStride{ 0 };
 	UINT m_nOffset{ 0 };
 
 	UINT m_nIndices{ 0 };

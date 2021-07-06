@@ -114,8 +114,9 @@ HeightMapGridMesh::HeightMapGridMesh(
 	m_xmf3Scale{ xmf3Scale }
 {
 	m_nVertices = m_nWidth * m_nLength;
-	m_vVertices.resize(m_nVertices);
-	m_nStride = sizeof(Vertex);
+	m_vxmf3Positions.resize(m_nVertices);
+	m_vxmf3Normals.resize(m_nVertices);
+	m_vxmf2TexCoords0.resize(m_nVertices);
 	m_nOffset = 0;
 	m_nSlot = 0;
 	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
@@ -134,19 +135,23 @@ HeightMapGridMesh::HeightMapGridMesh(
 			XMFLOAT2 xmf2TexCoord0 =
 				XMFLOAT2((float)x / m_nWidth, (float)z / m_nLength);
 
-			m_vVertices[i] = Vertex(
-				xmf3Position, xmf3Normal, xmf2TexCoord0);
+			m_vxmf3Positions[i] = xmf3Position;
+			m_vxmf3Normals[i] = xmf3Normal;
+			m_vxmf2TexCoords0[i] = xmf2TexCoord0;
 		}
 	}
 
-	m_pd3dVertexBuffer = d3dUtil::CreateDefaultBuffer(
-		pd3dDevice, pd3dCommandList,
-		m_vVertices.data(), m_nStride * m_nVertices,
-		m_pd3dVertexUploadBuffer);
+	unique_ptr<VertexBuffer> pPositionBuffer = make_unique<VertexBuffer>();
+	pPositionBuffer->Create(pd3dDevice, pd3dCommandList, sizeof(XMFLOAT3), m_nVertices, m_vxmf3Positions.data());
+	m_umpVertexBuffers["position"] = move(pPositionBuffer);
 
-	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
-	m_d3dVertexBufferView.StrideInBytes = m_nStride;
-	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+	unique_ptr<VertexBuffer> pNormalBuffer = make_unique<VertexBuffer>();
+	pNormalBuffer->Create(pd3dDevice, pd3dCommandList, sizeof(XMFLOAT3), m_nVertices, m_vxmf3Normals.data());
+	m_umpVertexBuffers["normal"] = move(pNormalBuffer);
+
+	unique_ptr<VertexBuffer> pTexCoordBuffer = make_unique<VertexBuffer>();
+	pTexCoordBuffer->Create(pd3dDevice, pd3dCommandList, sizeof(XMFLOAT2), m_nVertices, m_vxmf2TexCoords0.data());
+	m_umpVertexBuffers["uv0"] = move(pTexCoordBuffer);
 
 	m_nIndices = ((nWidth * 2) * (nLength - 1)) + ((nLength - 1) - 1);
 	m_vIndices.resize(m_nIndices);
