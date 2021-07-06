@@ -27,11 +27,11 @@ D3D12_INPUT_LAYOUT_DESC OpaqueShader::CreateInputLayout()
 D3D12_SHADER_BYTECODE OpaqueShader::CreateVertexShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"Shaders.hlsl", "VS", "vs_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"Default.hlsl", "VS", "vs_5_1", pd3dShaderBlob);
 };
 
 D3D12_SHADER_BYTECODE OpaqueShader::CreatePixelShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"Shaders.hlsl", "PS", "ps_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"Default.hlsl", "PS", "ps_5_1", pd3dShaderBlob);
 };

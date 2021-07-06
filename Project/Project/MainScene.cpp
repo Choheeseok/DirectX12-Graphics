@@ -521,7 +521,7 @@ void MainScene::BuildLights()
 	m_umLights["Camera_Spot"]->m_xmf4Specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 0.0f);
 	m_umLights["Camera_Spot"]->m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_umLights["Camera_Spot"]->m_xmf3Direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	m_umLights["Camera_Spot"]->m_xmf3Attenuation = XMFLOAT3(1.0f, 0.01f, 0.0001f);
+	m_umLights["Camera_Spot"]->m_xmf3Attenuation = XMFLOAT3(1.0f, 0.001f, 0.0001f);
 	m_umLights["Camera_Spot"]->m_fFalloff = 8.0f;
 	m_umLights["Camera_Spot"]->m_fPhi = (float)cos(XMConvertToRadians(40.0f));
 	m_umLights["Camera_Spot"]->m_fTheta = (float)cos(XMConvertToRadians(20.0f));

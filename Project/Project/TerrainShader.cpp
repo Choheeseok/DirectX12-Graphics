@@ -27,13 +27,13 @@ D3D12_INPUT_LAYOUT_DESC TerrainShader::CreateInputLayout()
 D3D12_SHADER_BYTECODE TerrainShader::CreateVertexShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"Terrain.hlsl", "VS_Terrain", "vs_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"Terrain.hlsl", "VS", "vs_5_1", pd3dShaderBlob);
 };
 
 D3D12_SHADER_BYTECODE TerrainShader::CreatePixelShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"Terrain.hlsl", "PS_Terrain", "ps_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"Terrain.hlsl", "PS", "ps_5_1", pd3dShaderBlob);
 };
 
 TerrainObject* TerrainShader::BuildTerrain(

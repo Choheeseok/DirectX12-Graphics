@@ -4,13 +4,13 @@
 D3D12_SHADER_BYTECODE SkyBoxShader::CreateVertexShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"SkyBox.hlsl", "VS_SkyBox", "vs_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"SkyBox.hlsl", "VS", "vs_5_1", pd3dShaderBlob);
 };
 
 D3D12_SHADER_BYTECODE SkyBoxShader::CreatePixelShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"SkyBox.hlsl", "PS_SkyBox", "ps_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"SkyBox.hlsl", "PS", "ps_5_1", pd3dShaderBlob);
 };
 
 D3D12_RASTERIZER_DESC SkyBoxShader::CreateRasterizerState()

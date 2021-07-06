@@ -1,13 +1,13 @@
-#include "Shaders.hlsl"
+#include "Common.hlsl"
 
-struct VS_TERRAIN_INPUT
+struct VertexIn
 {
 	float3 position : POSITION;
 	float3 normal : NORMAL;
 	float2 uv0 : TEXCOORD0;
 };
 
-struct VS_TERRAIN_OUTPUT
+struct VertexOut
 {
 	float4 position : SV_POSITION;
 	float3 positionW : POSITION;
@@ -17,9 +17,9 @@ struct VS_TERRAIN_OUTPUT
 	nointerpolation uint matIdx : MATIDX;
 };
 
-VS_TERRAIN_OUTPUT VS_Terrain(VS_TERRAIN_INPUT input, uint i : SV_InstanceID)
+VertexOut VS(VertexIn input, uint i : SV_InstanceID)
 {
-	VS_TERRAIN_OUTPUT output;
+	VertexOut output;
 	output.positionW = mul(float4(input.position, 1.0f), gGameObjectInfos[i].m_mtxWorld).xyz;
 	output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
 	output.uv0 = input.uv0;
@@ -30,7 +30,7 @@ VS_TERRAIN_OUTPUT VS_Terrain(VS_TERRAIN_INPUT input, uint i : SV_InstanceID)
 	return output;
 }
 
-float4 PS_Terrain(VS_TERRAIN_OUTPUT input) :SV_Target
+float4 PS(VertexOut input) :SV_Target
 {
 	float4 cBaseTexColor = gtxtDiffuseMap.Sample(gSamplerState,input.uv0);
 

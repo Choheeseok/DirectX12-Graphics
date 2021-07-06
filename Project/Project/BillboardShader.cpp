@@ -4,19 +4,19 @@
 D3D12_SHADER_BYTECODE BillboardShader::CreateVertexShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"Billboard.hlsl", "VS_Billboard", "vs_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"Billboard.hlsl", "VS", "vs_5_1", pd3dShaderBlob);
 };
 
 D3D12_SHADER_BYTECODE BillboardShader::CreateGeometryShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"Billboard.hlsl", "GS_Billboard", "gs_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"Billboard.hlsl", "GS", "gs_5_1", pd3dShaderBlob);
 };
 
 D3D12_SHADER_BYTECODE BillboardShader::CreatePixelShader(
 	ID3DBlob** pd3dShaderBlob)
 {
-	return CompileShaderFromFile(L"Billboard.hlsl", "PS_Billboard", "ps_5_1", pd3dShaderBlob);
+	return CompileShaderFromFile(L"Billboard.hlsl", "PS", "ps_5_1", pd3dShaderBlob);
 };
 
 D3D12_INPUT_LAYOUT_DESC BillboardShader::CreateInputLayout()

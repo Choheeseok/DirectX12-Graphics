@@ -1,20 +1,20 @@
-#include "Shaders.hlsl"
+#include "Common.hlsl"
 
-struct VS_BILLBOARD_INPUT
+struct VertexIn
 {
 	float3 pos : POSITION;
 	float3 normal : NORMAL;
 	float2 size : SCALE;
 };
 
-struct VS_BILLBOARD_OUTPUT
+struct VertexOut
 {
 	float4 pos : SV_POSITION;
 	float2 size : SCALE;
 	uint matIdx : MATIDX;
 };
 
-struct GS_BILLBOARD_OUTPUT
+struct GeometryOut
 {
 	float4 pos : SV_POSITION;
 	float3 posW : POSITION;
@@ -24,9 +24,9 @@ struct GS_BILLBOARD_OUTPUT
 	uint matIdx : MATIDX;
 };
 
-VS_BILLBOARD_OUTPUT VS_Billboard(VS_BILLBOARD_INPUT input, uint instanceID : SV_InstanceID)
+VertexOut VS(VertexIn input, uint instanceID : SV_InstanceID)
 {
-	VS_BILLBOARD_OUTPUT output;
+	VertexOut output;
 
 	output.pos = mul(float4(input.pos, 1.0f), gGameObjectInfos[instanceID].m_mtxWorld);
 
@@ -38,10 +38,10 @@ VS_BILLBOARD_OUTPUT VS_Billboard(VS_BILLBOARD_INPUT input, uint instanceID : SV_
 }
 
 [maxvertexcount(4)]
-void GS_Billboard(
-	point VS_BILLBOARD_OUTPUT input[1],
+void GS(
+	point VertexOut input[1],
 	uint primID :SV_PrimitiveID,
-	inout TriangleStream<GS_BILLBOARD_OUTPUT> outStream)
+	inout TriangleStream<GeometryOut> outStream)
 {
 	float3 vUp = float3(0.0f, 1.0f, 0.0f);
 	float3 vLook = gvCameraPosition - input[0].pos.xyz;
@@ -52,7 +52,7 @@ void GS_Billboard(
 	float x = input[0].size.x;
 	float y = input[0].size.y;
 
-	GS_BILLBOARD_OUTPUT output;
+	GeometryOut output;
 
 	float4 pVertices[4];
 	pVertices[0] = float4(input[0].pos.xyz + x * vRight - y * vUp, 1.0f);
@@ -76,7 +76,7 @@ void GS_Billboard(
 	}
 }
 
-float4 PS_Billboard(GS_BILLBOARD_OUTPUT input) :SV_Target
+float4 PS(GeometryOut input) :SV_Target
 {
 	float4 color = gtxtDiffuseMap.Sample(gSamplerState,input.uv);
 	//color = color * Lighting(input.matIdx, input.posW, input.normalW);

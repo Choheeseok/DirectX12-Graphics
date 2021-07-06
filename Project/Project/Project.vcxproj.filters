@@ -174,9 +174,6 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>소스 파일\Meshes</Filter>
     </ClCompile>
-    <ClCompile Include="Shaders.hlsl">
-      <Filter>소스 파일\HLSLs</Filter>
-    </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>소스 파일\GameObjects</Filter>
     </ClCompile>
@@ -222,9 +219,18 @@
     <ClCompile Include="BillboardMesh.cpp">
       <Filter>소스 파일\Meshes</Filter>
     </ClCompile>
+    <ClCompile Include="Default.hlsl">
+      <Filter>소스 파일\HLSLs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Terrain.hlsl">
+      <Filter>소스 파일\HLSLs</Filter>
+    </FxCompile>
+    <FxCompile Include="Shadow.hlsl">
+      <Filter>소스 파일\HLSLs</Filter>
+    </FxCompile>
+    <FxCompile Include="Common.hlsl">
       <Filter>소스 파일\HLSLs</Filter>
     </FxCompile>
   </ItemGroup>

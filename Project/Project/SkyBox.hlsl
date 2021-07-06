@@ -1,27 +1,27 @@
-#include "Shaders.hlsl"
+#include "Common.hlsl"
 
-struct VS_SKYBOX_INPUT
+struct VertexIn
 {
 	float3 pos : POSITION;
 	float3 normal : NORMAL;
 	float2 uv : TEXCOORD;
 };
 
-struct VS_SKYBOX_OUTPUT
+struct VertexOut
 {
 	float4 pos : SV_POSITION;
 	float3 posW : POSITION;
 };
 
-struct PS_SKYBOX_OUTPUT
+struct PixelOut
 {
 	float4 color : SV_Target;
 	float depth : SV_DEPTH;
 };
 
-VS_SKYBOX_OUTPUT VS_SkyBox(VS_SKYBOX_INPUT input, uint instanceID : SV_InstanceID)
+VertexOut VS(VertexIn input, uint instanceID : SV_InstanceID)
 {
-	VS_SKYBOX_OUTPUT output;
+	VertexOut output;
 	matrix mtxWorld = matrix(
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -42,9 +42,9 @@ VS_SKYBOX_OUTPUT VS_SkyBox(VS_SKYBOX_INPUT input, uint instanceID : SV_InstanceI
 	return output;
 }
 
-PS_SKYBOX_OUTPUT PS_SkyBox(VS_SKYBOX_OUTPUT input)
+PixelOut PS(VertexOut input)
 {
-	PS_SKYBOX_OUTPUT output;
+	PixelOut output;
 	output.color = gtxtCubeMap.Sample(gSamplerState, input.posW);
 	output.depth = 1.0f;
 
